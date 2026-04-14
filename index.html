@@ -350,7 +350,7 @@ body::before {
 // ══════════════════════════════════════════════════════
 // CONFIG — ganti URL setelah deploy Apps Script
 // ══════════════════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbO0GCQ2c2UT-Nlr5nQ8Sgb4A3h6jkzxR8MPoue22zqKMrwYkKSQKQktg1Jg7q-e46Dw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCrTRmQ8EXl8LhL-SqDF8xOeVFqlOqSOAhShKtQPzoGRJIvB_golPyw7devXA8XqrTLg/exec';
 const ADMIN_PASSWORD  = 'LMP2025wpt';   // ← ganti sesuai keinginan Anda
 
 // ══════════════════════════════════════════════════════
@@ -973,15 +973,20 @@ function kirimKeServer(payload){
 
 function kirimDiscord(payload){
   const ts=payload.timestamp||'';
+  const score=payload.score!==undefined?payload.score:'—';
+  const total=payload.total||50;
+  const grade=payload.grade||'—';
+  const kategori=score>=35?'Sangat Tinggi (Superior)':score>=30?'Tinggi':score>=25?'Di Atas Rata-Rata':score>=20?'Rata-Rata':score>=15?'Rata-Rata Bawah':'Di Bawah Rata-Rata';
   const embed={
     embeds:[{
       title:'📋 Hasil Tes WPT — Selesai',
       color:0xD4A843,
       fields:[
-        {name:'👤 Nama',    value:payload.nama    ||'—', inline:true},
-        {name:'💼 Jabatan', value:payload.jabatan ||'—', inline:true},
-        {name:'📅 Waktu',   value:ts,                    inline:false},
-        {name:'📧 Status',  value:'Hasil telah dikirim ke **hrdgamemorial@gmail.com**', inline:false}
+        {name:'👤 Nama',     value:payload.nama    ||'—', inline:true},
+        {name:'💼 Jabatan',  value:payload.jabatan ||'—', inline:true},
+        {name:'📅 Tgl Test', value:ts,                    inline:false},
+        {name:'🎯 Score',    value:`**${score} / ${total}** — Grade **${grade}** — ${kategori}`, inline:false},
+        {name:'📧 Status',   value:'Hasil telah dikirim ke **hrdgamemorial@gmail.com**', inline:false}
       ],
       footer:{text:'WPT Assessment — Lestari Memorial Park'}
     }]
