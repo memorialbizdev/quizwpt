@@ -869,39 +869,10 @@ function endQuiz(){
     score,total,persen,grade,persentil,waktuTersisa:fmt(Math.max(0,secondsLeft))
   });
 
-  // UI result
-  document.getElementById('res-score').textContent=score;
-  document.getElementById('res-total').textContent=total;
-  document.getElementById('rstat-benar').textContent=score;
-  document.getElementById('rstat-salah').textContent=total-score;
-  document.getElementById('rstat-waktu').textContent=fmt(Math.max(0,secondsLeft));
-  if(timedOut)document.getElementById('timeout-banner').style.display='block';
-
-  // Highlight row interpretasi
-  [0,1,2,3,4,5].forEach(i=>document.getElementById('wr'+i).classList.remove('hl'));
-  const ri=score>=35?5:score>=30?4:score>=25?3:score>=20?2:score>=15?1:0;
-  document.getElementById('wr'+ri).classList.add('hl');
-
-  let emoji,msg,sub;
-  if(score>=35){emoji='🏆';msg='Sangat Tinggi!';sub=`Luar biasa, ${userData.nama}! Skor WPT Anda masuk kategori Superior. Kemampuan analitis dan pemecahan masalah Anda sangat kuat.`;}
-  else if(score>=30){emoji='🌟';msg='Tinggi!';sub=`${userData.nama}, hasil sangat baik. Kemampuan berpikir analitis Anda solid di atas rata-rata populasi.`;}
-  else if(score>=25){emoji='💪';msg='Di Atas Rata-Rata';sub=`${userData.nama}, performa bagus. Asah terus kemampuan berhitung dan penalaran logis untuk hasil optimal.`;}
-  else if(score>=20){emoji='📈';msg='Rata-Rata';sub=`${userData.nama}, skor dalam rentang rata-rata. Latih kecepatan dan ketepatan berpikir analitis Anda.`;}
-  else{emoji='📚';msg='Perlu Latihan';sub=`${userData.nama}, ini langkah awal. Latih berhitung, penalaran verbal, dan pola angka secara rutin.`;}
-  document.getElementById('res-emoji').textContent=emoji;
-  document.getElementById('res-msg').textContent=msg;
-  document.getElementById('res-sub').textContent=sub;
-
-  // Review
-  const rl=document.getElementById('review-list');
-  rl.innerHTML='<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:15px;color:var(--white);margin-bottom:14px;">Pembahasan Jawaban</div>';
-  answers.forEach((a,i)=>{
-    const el=document.createElement('div');el.className='rev-item';
-    el.innerHTML=`<div class="rev-q">${i+1}. ${a.q}</div>
-      ${a.ok?`<div class="rev-a ok">✓ ${a.chosen}</div>`
-             :`<div class="rev-a err">✗ Anda: ${a.chosen}</div><div class="rev-a ok" style="margin-top:4px;">✓ Benar: ${a.correct}</div>`}`;
-    rl.appendChild(el);
-  });
+  // Tampilkan pesan selesai saja
+  document.getElementById('res-emoji').textContent='✅';
+  document.getElementById('res-msg').textContent='Tes Sudah Selesai';
+  document.getElementById('res-sub').textContent='Hasil tes sudah dikirim ke hrdgamemorial@gmail.com';
 }
 
 // ══════════════════════════════════════════════════════
