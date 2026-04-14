@@ -353,7 +353,6 @@ body::before {
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCrTRmQ8EXl8LhL-SqDF8xOeVFqlOqSOAhShKtQPzoGRJIvB_golPyw7devXA8XqrTLg/exec';
 const ADMIN_PASSWORD  = 'LMP2025wpt';   // ← ganti sesuai keinginan Anda
 
-
 // ══════════════════════════════════════════════════════
 // BANK SOAL — 50 soal WPT, angka diacak dari aslinya
 // Urutan: level 1 (mudah) → level 2 (sedang) → level 3 (sulit)
@@ -949,35 +948,37 @@ function endQuiz(){
 }
 
 // ══════════════════════════════════════════════════════
-// KIRIM KE APPS SCRIPT  [v2 — fetch, bukan iframe]
+// KIRIM KE APPS SCRIPT via JSONP (bypass CORS)
 // ══════════════════════════════════════════════════════
 const DISCORD_WEBHOOK='https://discord.com/api/webhooks/1493451394198536192/pQjW2Ajd61hKx3vyehKzeEmRll6YOwd5jSNPJ4SubQrh_yCpDXVoRP2JgOixtvmloxP3';
 
 function kirimKeServer(payload){
   if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('PASTE'))return;
-  const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
-  fetch(url,{mode:'cors'})
-    .then(r=>r.json())
-    .then(res=>{
-      if(payload.action==='submitResult'){
-        showToast('✅ Hasil tersimpan di Google Sheet!');
-        kirimDiscord(payload);
-      }
-    })
-    .catch(()=>{
-      // Fallback iframe jika fetch gagal CORS
-      if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('PASTE'))return;
-      const iframe=document.createElement('iframe');
-      iframe.style.display='none';iframe.src=url;
-      document.body.appendChild(iframe);
-      setTimeout(()=>{
-        try{document.body.removeChild(iframe);}catch(e){}
-        if(payload.action==='submitResult'){
-          showToast('✅ Hasil dikirim ke Google Sheet!');
-          kirimDiscord(payload);
-        }
-      },4000);
-    });
+
+  const cbName='__wptSend'+Date.now();
+  const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
+
+  window[cbName]=function(res){
+    delete window[cbName];
+    const s=document.getElementById('__wptSendScript');
+    if(s)s.remove();
+    if(payload.action==='submitResult'){
+      showToast('✅ Hasil tersimpan di Google Sheet!');
+      kirimDiscord(payload);
+    }
+  };
+
+  const script=document.createElement('script');
+  script.id='__wptSendScript';
+  script.src=url;
+  script.onerror=()=>{
+    delete window[cbName];
+    script.remove();
+    if(payload.action==='submitResult'){
+      showToast('⚠️ Gagal kirim ke server.',false);
+    }
+  };
+  document.head.appendChild(script);
 }
 
 function kirimDiscord(payload){
