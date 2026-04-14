@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://script.google.com https://script.googleusercontent.com https://fonts.googleapis.com https://fonts.gstatic.com https://discord.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://script.google.com https://script.googleusercontent.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tes Seleksi Karyawan | PT. KPUS</title>
 <style>
@@ -175,7 +176,7 @@ body::before {
 <!-- ══════════════════ 1: ADMIN LOGIN ══════════════════ -->
 <div id="screen-admin-login" class="screen sc active">
   <div class="badge">● PT. KPUS Assessment System</div>
- 
+  <div class="ttl">Wonderlic<span class="ac">Personnel Test</span></div>
   <div class="sub">Panel Administrator. Masukkan password untuk membuka sistem.</div>
   <div class="card">
     <div class="clabel">Password Administrator</div>
@@ -267,6 +268,7 @@ body::before {
 <!-- ══════════════════ 4: INTRO ══════════════════ -->
 <div id="screen-intro" class="screen sc">
   <div class="badge">● PT. KPUS Assessment System</div>
+  <div class="ttl">Wonderlic<span class="ac">Personnel Test</span></div>
   <div class="sub">Tes kemampuan memecahkan masalah. Kerjakan semampu Anda — jangan terlalu lama di satu soal.</div>
   <div class="stats-row">
     <div class="stat-pill"><div class="stat-num">50</div><div class="stat-lbl">Soal</div></div>
@@ -692,49 +694,34 @@ function pesertaMasuk(){
     showScreen('screen-intro');return;
   }
 
-  // Validasi ke Apps Script via JSONP
-  const cbName='__wptCb'+Date.now();
+  // Validasi ke Apps Script via fetch
   const payload={action:'validateKode',kode};
-  const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
+  const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),10000);
 
-  const timeout=setTimeout(()=>{
-    cleanup();
-    btn.textContent='Lanjut →';btn.disabled=false;
-    err.textContent='✗ Server tidak merespons. Periksa koneksi internet.';
-  },10000);
-
-  function cleanup(){
-    clearTimeout(timeout);
-    delete window[cbName];
-    const s=document.getElementById('__wptScript');
-    if(s)s.remove();
-  }
-
-  window[cbName]=function(res){
-    cleanup();
-    btn.textContent='Lanjut →';btn.disabled=false;
-    if(res.valid){
-      userData={nama,jabatan,kode};
-      document.getElementById('intro-nama').textContent=nama;
-      document.getElementById('intro-jabatan').textContent=jabatan||'';
-      const entry=kodeLog.find(k=>k.kode===kode);
-      if(entry)entry.used=true;
-      renderLog();
-      showScreen('screen-intro');
-    } else {
-      err.textContent='✗ '+(res.reason||'Kode tidak valid. Minta kode baru dari admin.');
-    }
-  };
-
-  const script=document.createElement('script');
-  script.id='__wptScript';
-  script.src=url;
-  script.onerror=()=>{
-    cleanup();
-    btn.textContent='Lanjut →';btn.disabled=false;
-    err.textContent='✗ Gagal terhubung ke server.';
-  };
-  document.head.appendChild(script);
+  fetch(url,{signal:controller.signal})
+    .then(r=>r.json())
+    .then(res=>{
+      clearTimeout(timeout);
+      btn.textContent='Lanjut →';btn.disabled=false;
+      if(res.valid){
+        userData={nama,jabatan,kode};
+        document.getElementById('intro-nama').textContent=nama;
+        document.getElementById('intro-jabatan').textContent=jabatan||'';
+        const entry=kodeLog.find(k=>k.kode===kode);
+        if(entry)entry.used=true;
+        renderLog();
+        showScreen('screen-intro');
+      } else {
+        err.textContent='✗ '+(res.reason||'Kode tidak valid. Minta kode baru dari admin.');
+      }
+    })
+    .catch(e=>{
+      clearTimeout(timeout);
+      btn.textContent='Lanjut →';btn.disabled=false;
+      err.textContent='✗ '+(e.name==='AbortError'?'Server timeout.':'Gagal terhubung ke server.');
+    });
 }
 
 // ══════════════════════════════════════════════════════
@@ -892,22 +879,27 @@ const DISCORD_WEBHOOK='https://discord.com/api/webhooks/1493451394198536192/pQjW
 
 function kirimKeServer(payload){
   if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('PASTE'))return;
-  const cbName='__wptSend'+Date.now();
-  const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
-  window[cbName]=function(res){
-    delete window[cbName];
-    const s=document.getElementById('__wptSendScript');
-    if(s)s.remove();
+  const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
+  // Gunakan iframe — tidak ada CORS issue, fire-and-forget
+  const iframe=document.createElement('iframe');
+  iframe.style.display='none';
+  iframe.src=url;
+  iframe.onload=()=>{
+    setTimeout(()=>{ try{document.body.removeChild(iframe);}catch(e){} },3000);
     if(payload.action==='submitResult'){
       showToast('✅ Hasil tersimpan!');
       kirimDiscord(payload);
     }
   };
-  const script=document.createElement('script');
-  script.id='__wptSendScript';
-  script.src=url;
-  script.onerror=()=>{ delete window[cbName]; script.remove(); };
-  document.head.appendChild(script);
+  iframe.onerror=()=>{ try{document.body.removeChild(iframe);}catch(e){} };
+  document.body.appendChild(iframe);
+  // Fallback toast setelah 5 detik
+  if(payload.action==='submitResult'){
+    setTimeout(()=>{
+      kirimDiscord(payload);
+      showToast('✅ Hasil terkirim!');
+    },5000);
+  }
 }
 
 function kirimDiscord(payload){
