@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WPT — Wonderlic Personnel Test | LNS</title>
+<title>Tes Seleksi Karyawan | PT. KPUS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
@@ -174,7 +174,7 @@ body::before {
 
 <!-- ══════════════════ 1: ADMIN LOGIN ══════════════════ -->
 <div id="screen-admin-login" class="screen sc active">
-  <div class="badge">● LNS Assessment System</div>
+  <div class="badge">● PT. KPUS Assessment System</div>
   <div class="ttl">Wonderlic<span class="ac">Personnel Test</span></div>
   <div class="sub">Panel Administrator. Masukkan password untuk membuka sistem.</div>
   <div class="card">
@@ -191,7 +191,7 @@ body::before {
 <div id="screen-admin" class="screen">
   <div class="admin-header">
     <div>
-      <div class="admin-header-title">⚙️ WPT Admin Panel</div>
+      <div class="admin-header-title">⚙️ Admin Panel PT. KPUS</div>
       <div class="admin-header-sub">Generate kode akses untuk peserta</div>
     </div>
     <button class="btn-logout" onclick="adminLogout()">Keluar</button>
@@ -234,7 +234,7 @@ body::before {
 
 <!-- ══════════════════ 3: PESERTA — MASUKKAN KODE ══════════════════ -->
 <div id="screen-kode" class="screen sc">
-  <div class="badge">● LNS Assessment System</div>
+  <div class="badge">● PT. KPUS Assessment System</div>
   <div class="ttl">Masukkan<span class="ac">Kode Akses</span></div>
   <div class="sub">Masukkan data Anda dan kode akses yang diberikan administrator.</div>
   <div class="card">
@@ -255,7 +255,7 @@ body::before {
 
 <!-- ══════════════════ 4: INTRO ══════════════════ -->
 <div id="screen-intro" class="screen sc">
-  <div class="badge">● LNS Assessment System</div>
+  <div class="badge">● PT. KPUS Assessment System</div>
   <div class="ttl">Wonderlic<span class="ac">Personnel Test</span></div>
   <div class="sub">Tes kemampuan memecahkan masalah. Kerjakan semampu Anda — jangan terlalu lama di satu soal.</div>
   <div class="stats-row">
@@ -286,7 +286,7 @@ body::before {
 <div id="screen-quiz" class="screen">
   <div class="qhdr">
     <div>
-      <div class="qhdr-title">WPT — Wonderlic Personnel Test</div>
+      
       <div class="qhdr-sub" id="hdr-name"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
@@ -315,34 +315,28 @@ body::before {
       <button class="btn-cek" id="btn-cek" onclick="cekTeks()">Cek ✓</button>
     </div>
     <div class="fbbox" id="fbbox"></div>
-    <button class="btn-next" id="btn-next" onclick="nextQ()">Lanjut →</button>
+    
   </div>
 </div>
 
 <!-- ══════════════════ 6: RESULT ══════════════════ -->
 <div id="screen-result" class="screen sc">
   <div id="timeout-banner" class="timeout-banner">⏰ Waktu 12 menit habis — tes dihentikan otomatis.</div>
-  <div class="res-badge" id="res-emoji">🏆</div>
-  <div class="res-score" id="res-score">0</div>
-  <div class="res-score-sub">dari <span id="res-total">50</span> soal yang dikerjakan</div>
-  <div class="res-msg" id="res-msg"></div>
+  <div class="res-badge" id="res-emoji">✅</div>
+  <div class="res-msg" id="res-msg">Tes Selesai!</div>
   <div class="res-sub" id="res-sub"></div>
-  <div class="res-stats">
-    <div class="rstat"><div class="rstat-num g" id="rstat-benar">0</div><div class="rstat-lbl">Benar</div></div>
-    <div class="rstat"><div class="rstat-num r" id="rstat-salah">0</div><div class="rstat-lbl">Salah/Skip</div></div>
-    <div class="rstat"><div class="rstat-num go" id="rstat-waktu">—</div><div class="rstat-lbl">Sisa Waktu</div></div>
-  </div>
-  <div class="wpt-tbl">
-    <h4>📊 Interpretasi Skor WPT</h4>
-    <div class="wpt-row" id="wr0"><span>0 – 14</span><span>Di bawah rata-rata</span></div>
-    <div class="wpt-row" id="wr1"><span>15 – 19</span><span>Rata-rata bawah</span></div>
-    <div class="wpt-row" id="wr2"><span>20 – 24</span><span>Rata-rata</span></div>
-    <div class="wpt-row" id="wr3"><span>25 – 29</span><span>Di atas rata-rata</span></div>
-    <div class="wpt-row" id="wr4"><span>30 – 34</span><span>Tinggi</span></div>
-    <div class="wpt-row" id="wr5"><span>35 – 50</span><span>Sangat Tinggi (Superior)</span></div>
-  </div>
-  <button class="btn-gold" onclick="resetAll()">Kerjakan Ulang</button><br>
-  <button class="btn-ghost" onclick="toggleReview()">Lihat Pembahasan ▾</button>
+  <!-- Hidden elements untuk keperluan JS internal -->
+  <span id="res-score" style="display:none">0</span>
+  <span id="res-total" style="display:none">50</span>
+  <span id="rstat-benar" style="display:none">0</span>
+  <span id="rstat-salah" style="display:none">0</span>
+  <span id="rstat-waktu" style="display:none">—</span>
+  <span id="wr0" style="display:none"></span>
+  <span id="wr1" style="display:none"></span>
+  <span id="wr2" style="display:none"></span>
+  <span id="wr3" style="display:none"></span>
+  <span id="wr4" style="display:none"></span>
+  <span id="wr5" style="display:none"></span>
   <div class="review-list" id="review-list" style="display:none;"></div>
 </div>
 
@@ -646,7 +640,7 @@ function copyKode(){
   navigator.clipboard.writeText(currentKode).then(()=>showToast('📋 Kode '+currentKode+' disalin!'));
 }
 function kirimWA(){
-  const teks=`Halo ${currentGenNama}, berikut kode akses WPT Anda:\n\n*${currentKode}*\n\nMasukkan kode ini di halaman tes. Berlaku 3 jam.`;
+  const teks=`Halo ${currentGenNama}, berikut kode akses tes seleksi Anda:\n\n*${currentKode}*\n\nMasukkan kode ini di halaman tes. Berlaku 3 jam.`;
   window.open('https://wa.me/?text='+encodeURIComponent(teks),'_blank');
 }
 
@@ -774,7 +768,7 @@ function dummyTest(){
   document.getElementById('review-list').style.display='none';
   document.getElementById('res-emoji').textContent='✅';
   document.getElementById('res-msg').textContent='Tes Selesai!';
-  document.getElementById('res-sub').textContent=`Terima kasih, ${userData.nama}! Tes WPT Anda telah selesai dan hasilnya sudah dikirim ke hrdgamemorial@gmail.com. Tim HRD akan menghubungi Anda selanjutnya.`;
+  document.getElementById('res-sub').textContent=`Terima kasih, ${userData.nama}! Tes seleksi Anda telah selesai. Hasil akan disampaikan oleh Tim HRD PT. KPUS.`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -868,8 +862,7 @@ function pickMC(idx,btn,q){
   if(answered)return;answered=true;
   document.querySelectorAll('.cbtn').forEach(b=>b.disabled=true);
   const ok=idx===q.a;if(ok)score++;
-  document.querySelectorAll('.cbtn')[q.a].classList.add('correct');
-  if(!ok)btn.classList.add('wrong');
+  // Tidak highlight jawaban benar/salah
   tampilFeedback(ok,q.exp,q.c[idx],q.c[q.a]);
   answers.push({q:q.q,chosen:q.c[idx],correct:q.c[q.a],ok,type:'MC'});
 }
@@ -883,19 +876,18 @@ function cekTeks(){
   answered=true;inp.disabled=true;document.getElementById('btn-cek').disabled=true;
   const all=[q.a.toString(),...(q.alt||[])].map(x=>x.toString().toLowerCase().trim());
   const ok=all.includes(val.toLowerCase().trim());
-  if(ok){score++;inp.classList.add('correct');}else{inp.classList.add('wrong');}
+  if(ok)score++;
+  // Tidak warnai input
   tampilFeedback(ok,q.exp,val,q.a.toString());
   answers.push({q:q.q,chosen:val,correct:q.a.toString(),ok,type:'TEXT'});
 }
 
 function tampilFeedback(ok,exp,chosen,correct){
-  const fb=document.getElementById('fbbox');
-  fb.style.display='block';
-  fb.className='fbbox '+(ok?'correct':'wrong');
-  fb.innerHTML=ok?`<strong>✓ Benar!</strong> ${exp}`:`<strong>✗ Kurang tepat.</strong> Jawaban: <strong>${correct}</strong>. ${exp}`;
-  const nb=document.getElementById('btn-next');
-  nb.style.display='inline-block';
-  nb.textContent=currentIdx+1<questions.length?'Lanjut →':'Lihat Hasil →';
+  // Auto pindah ke soal berikutnya setelah 400ms
+  setTimeout(()=>{
+    if(currentIdx+1<questions.length) nextQ();
+    else endQuiz();
+  }, 400);
 }
 
 function nextQ(){
@@ -944,7 +936,7 @@ function endQuiz(){
   // Pesan simpel ke peserta
   document.getElementById('res-emoji').textContent='✅';
   document.getElementById('res-msg').textContent='Tes Selesai!';
-  document.getElementById('res-sub').textContent=`Terima kasih, ${userData.nama}! Tes WPT Anda telah selesai dan hasilnya sudah dikirim ke hrdgamemorial@gmail.com. Tim HRD akan menghubungi Anda selanjutnya.`;
+  document.getElementById('res-sub').textContent=`Terima kasih, ${userData.nama}! Tes seleksi Anda telah selesai. Hasil akan disampaikan oleh Tim HRD PT. KPUS.`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -989,7 +981,7 @@ function kirimDiscord(payload){
   const kategori=score>=35?'Sangat Tinggi (Superior)':score>=30?'Tinggi':score>=25?'Di Atas Rata-Rata':score>=20?'Rata-Rata':score>=15?'Rata-Rata Bawah':'Di Bawah Rata-Rata';
   const embed={
     embeds:[{
-      title:'📋 Hasil Tes WPT — Selesai',
+      title:'📋 Hasil Tes Seleksi — Selesai',
       color:0xD4A843,
       fields:[
         {name:'👤 Nama',     value:payload.nama    ||'—', inline:true},
@@ -998,7 +990,7 @@ function kirimDiscord(payload){
         {name:'🎯 Score',    value:`**${score} / ${total}** — Grade **${grade}** — ${kategori}`, inline:false},
         {name:'📧 Status',   value:'Hasil telah dikirim ke **hrdgamemorial@gmail.com**', inline:false}
       ],
-      footer:{text:'WPT Assessment — Lestari Memorial Park'}
+      footer:{text:'PT. KPUS Assessment System'}
     }]
   };
   fetch(DISCORD_WEBHOOK,{
