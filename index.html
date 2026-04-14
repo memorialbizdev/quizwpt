@@ -85,6 +85,9 @@ body::before {
 
 /* ── SCREEN: PESERTA MASUK KODE ── */
 #screen-kode.sc { min-height:100vh; }
+.screen.sc > .card,
+.screen.sc > .btn-gold,
+.screen.sc > .btn-ghost { width:100%; max-width:460px; }
 
 /* ── SCREEN: INTRO ── */
 #screen-intro.sc { min-height:100vh; }
@@ -168,7 +171,33 @@ body::before {
 .rev-a { font-size:12px; font-weight:600; }
 .rev-a.ok{color:#4ADE80;}.rev-a.err{color:#F87171;}
 
-@media(max-width:480px){ .pbwrap{display:none;} .txt-ans-wrap{flex-direction:column;align-items:flex-start;} }
+@media(max-width:480px){
+  .pbwrap{display:none;}
+  .txt-ans-wrap{flex-direction:column;align-items:flex-start;}
+  .card{padding:18px 16px;}
+  .btn-gold{width:100%;max-width:460px;padding:15px 24px;}
+  .btn-ghost{width:100%;max-width:460px;text-align:center;}
+  .sc{padding:20px 16px;}
+  .badge{font-size:10px;padding:5px 12px;}
+  .stats-row{gap:8px;}
+  .stat-pill{padding:8px 14px;}
+  .cr-kode{font-size:clamp(32px,8vw,56px);letter-spacing:6px;}
+  .cr-btns{flex-direction:column;align-items:center;}
+  .btn-copy,.btn-wa{width:100%;max-width:220px;padding:11px 20px;}
+  .gen-box{padding:16px;}
+  .admin-wrap{padding:20px 14px 80px;}
+  .qbody{padding:20px 14px 100px;}
+  .cbtn{padding:12px 14px;gap:10px;}
+  .log-tbl{font-size:12px;}
+  .log-tbl th,.log-tbl td{padding:8px 8px;}
+  .txt-ans-inp{width:100%;}
+  .res-badge{width:80px;height:80px;font-size:38px;}
+  .res-stats{gap:8px;}
+  .rstat{padding:10px 14px;}
+  .wpt-tbl{padding:14px 14px;}
+  .qhdr{padding:10px 14px;gap:8px;}
+  .timer-val{font-size:18px;}
+}
 </style>
 </head>
 <body>
