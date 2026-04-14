@@ -964,4 +964,9 @@ function resetAll(){
 }
 function toggleReview(){
   const rl=document.getElementById('review-list');
-  c
+  const isHidden=rl.style.display==='none'||rl.style.display==='';
+  rl.style.display=isHidden?'block':'none';
+}
+</script>
+</body>
+</html>
