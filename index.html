@@ -214,7 +214,7 @@ body::before {
           <button class="btn-copy" onclick="copyKode()">📋 Copy Kode</button>
           <button class="btn-wa"   onclick="kirimWA()">💬 Kirim WA</button>
         </div>
-        <div class="cr-note">Berlaku 3 jam · Email notif terkirim ke <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c1a9b3a5a6a0aca4acaeb3a8a0ad81a6aca0a8adefa2aeac">[email&#160;protected]</a></div>
+        <div class="cr-note">Berlaku 3 jam · Email notif terkirim ke <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ee869c8a898f838b83819c878f82ae89838f8782c08d8183">[email&#160;protected]</a></div>
       </div>
     </div>
 
@@ -278,14 +278,12 @@ body::before {
     </div>
   </div>
   <button class="btn-gold" onclick="startQuiz()">Mulai Tes Sekarang →</button>
-
 </div>
 
 <!-- ══════════════════ 5: QUIZ ══════════════════ -->
 <div id="screen-quiz" class="screen">
   <div class="qhdr">
     <div>
-      
       <div class="qhdr-sub" id="hdr-name"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
@@ -314,33 +312,420 @@ body::before {
       <button class="btn-cek" id="btn-cek" onclick="cekTeks()">Cek ✓</button>
     </div>
     <div class="fbbox" id="fbbox"></div>
-    
+    <button class="btn-next" id="btn-next" onclick="nextQ()">Lanjut →</button>
   </div>
 </div>
 
 <!-- ══════════════════ 6: RESULT ══════════════════ -->
 <div id="screen-result" class="screen sc">
   <div id="timeout-banner" class="timeout-banner">⏰ Waktu 12 menit habis — tes dihentikan otomatis.</div>
-  <div class="res-badge" id="res-emoji">✅</div>
+  <div class="res-badge" id="res-emoji">🏆</div>
   <div class="res-msg" id="res-msg">Tes Selesai!</div>
   <div class="res-sub" id="res-sub"></div>
-  <!-- Hidden elements untuk keperluan JS internal -->
   <span id="res-score" style="display:none">0</span>
   <span id="res-total" style="display:none">50</span>
   <span id="rstat-benar" style="display:none">0</span>
   <span id="rstat-salah" style="display:none">0</span>
   <span id="rstat-waktu" style="display:none">—</span>
-  <span id="wr0" style="display:none"></span>
-  <span id="wr1" style="display:none"></span>
-  <span id="wr2" style="display:none"></span>
-  <span id="wr3" style="display:none"></span>
-  <span id="wr4" style="display:none"></span>
-  <span id="wr5" style="display:none"></span>
+  <span id="wr0" style="display:none"></span><span id="wr1" style="display:none"></span>
+  <span id="wr2" style="display:none"></span><span id="wr3" style="display:none"></span>
+  <span id="wr4" style="display:none"></span><span id="wr5" style="display:none"></span>
   <div class="review-list" id="review-list" style="display:none;"></div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js" defer></script><script>
 // ══════════════════════════════════════════════════════
+// CONFIG — ganti URL setelah deploy Apps Script
+// ══════════════════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCrTRmQ8EXl8LhL-SqDF8xOeVFqlOqSOAhShKtQPzoGRJIvB_golPyw7devXA8XqrTLg/exec';
+const ADMIN_PASSWORD  = 'LMP2025wpt';   // ← ganti sesuai keinginan Anda
+
+// ══════════════════════════════════════════════════════
+// BANK SOAL — 50 soal WPT, angka diacak dari aslinya
+// Urutan: level 1 (mudah) → level 2 (sedang) → level 3 (sulit)
+// type MC = pilihan ganda | TEXT = isian angka/kata
+// ══════════════════════════════════════════════════════
+const BANK = [
+// ── LEVEL 1: MUDAH ──────────────────────────────────
+{id:1,lv:1,type:'MC',cat:'Pengetahuan Umum',
+ q:'Dua bulan yang lalu, sebelum pertengahan tahun, adalah bulan...',
+ c:['Maret','April','Mei','Juni','Juli'], a:1,
+ exp:'Pertengahan tahun = Juli. Dua bulan sebelum Juli = Mei. Jawaban: Mei.'},
+{id:2,lv:1,type:'MC',cat:'Antonim',
+ q:'MENANGKAP adalah lawan kata dari',
+ c:['meletakkan','membebaskan','berisiko','berusaha','turun tingkat'], a:1,
+ exp:'Lawan MENANGKAP = MEMBEBASKAN — satu menahan, satu melepaskan.'},
+{id:3,lv:1,type:'MC',cat:'Klasifikasi',
+ q:'Sebagian besar kata berikut satu kelompok. Manakah yang BERBEDA?',
+ c:['Januari','Agustus','Rabu','Oktober','Desember'], a:2,
+ exp:'"Rabu" adalah nama hari, sedangkan yang lain adalah nama bulan.'},
+{id:4,lv:1,type:'MC',cat:'Pengetahuan Umum',
+ q:'RSVP dalam undangan berarti:',
+ c:['Hadir tanpa konfirmasi','Mohon konfirmasi kehadiran Anda','Undangan tidak resmi','Tamu bebas datang','Jawab jika tidak hadir'], a:1,
+ exp:'RSVP = "Répondez s\'il vous plaît" (Prancis) = Mohon konfirmasi kehadiran.'},
+{id:5,lv:1,type:'MC',cat:'Klasifikasi',
+ q:'Manakah kata yang BERBEDA dari kelompok berikut?',
+ c:['pasukan','liga','berpartisipasi','regu','kelompok'], a:2,
+ exp:'"Berpartisipasi" adalah kata kerja, sedangkan yang lain adalah kata benda kelompok.'},
+{id:6,lv:1,type:'MC',cat:'Antonim',
+ q:'BIASA adalah lawan kata dari',
+ c:['jarang','terbiasa','tetap','berhenti','selalu'], a:0,
+ exp:'Lawan BIASA (sering terjadi) = JARANG.'},
+{id:7,lv:1,type:'MC',cat:'Persamaan Kata',
+ q:'"KLIEN" dan "PELANGGAN" — apakah dua kata ini:',
+ c:['Memiliki arti yang sama','Memiliki arti berlawanan','Tidak memiliki arti sama atau berlawanan'], a:0,
+ exp:'Klien dan Pelanggan bermakna sama — orang yang menggunakan jasa/produk.'},
+{id:8,lv:1,type:'MC',cat:'Pola Angka',
+ q:'Angka berapa yang selanjutnya dalam urutan ini?\n16  8  4  2  1  ½  ...',
+ c:['¼','⅛','0','⅓','1/5'], a:0,
+ exp:'Setiap angka dibagi 2: …1÷2=½, ½÷2=¼.'},
+{id:9,lv:1,type:'MC',cat:'Antonim',
+ q:'JAUH adalah lawan kata dari',
+ c:['terpencil','dekat','jarang','terburu-buru','pasti'], a:1,
+ exp:'Lawan JAUH = DEKAT.'},
+{id:10,lv:1,type:'MC',cat:'Silogisme',
+ q:'Anggap dua pernyataan pertama benar. Apakah pernyataan terakhir?\n\n"Anak-anak ini adalah anak normal. Semua anak normal sifatnya aktif. Anak-anak ini aktif."',
+ c:['Benar','Salah','Tidak Tahu'], a:0,
+ exp:'Semua anak normal = aktif. Anak-anak ini normal → pasti aktif. BENAR.'},
+{id:11,lv:1,type:'MC',cat:'Antonim',
+ q:'MUSIM GUGUR adalah lawan dari',
+ c:['liburan','musim panas','musim semi','musim dingin','akhir tahun'], a:2,
+ exp:'Gugur (Sept–Nov) lawannya Musim Semi (Mar–Mei) — satu layu, satu tumbuh.'},
+{id:12,lv:1,type:'TEXT',cat:'Aritmatika',
+ q:'Sebuah pesawat terbang 400 kaki dalam ½ detik.\nPada kecepatan sama, berapa kaki dalam 10 detik?',
+ a:'8000', alt:['8.000','8,000'],
+ exp:'400 per ½ detik = 800 per detik. × 10 = 8.000 kaki.'},
+{id:13,lv:1,type:'MC',cat:'Silogisme',
+ q:'Anggap dua pernyataan pertama benar. Apakah pernyataan terakhir?\n\n"John seusia Sally. Sally lebih muda dari Budi. John lebih muda dari Budi."',
+ c:['Benar','Salah','Tidak Tahu'], a:0,
+ exp:'John=Sally (usia sama). Sally<Budi. Maka John<Budi. BENAR.'},
+{id:14,lv:1,type:'TEXT',cat:'Aritmatika',
+ q:'4 permen seharga Rp 12. Berapa harga ½ lusin (6 buah)?',
+ a:'18', alt:['Rp18','Rp 18','18 rupiah'],
+ exp:'Rp12÷4 = Rp3/buah. ×6 = Rp18.'},
+// ── LEVEL 2: SEDANG ──────────────────────────────────
+{id:15,lv:2,type:'TEXT',cat:'Duplikasi',
+ q:'Berapa pasangan angka yang IDENTIK?\n\n73841   —   73841\n8105492  —  8105492\n19302012  —  19302021\n85901190  —  85901190\n77775555  —  77775555',
+ a:'4', alt:['empat'],
+ exp:'Pasangan 1, 2, 4, 5 identik. Pasangan 3 beda (012 vs 021). Total = 4.'},
+{id:16,lv:2,type:'MC',cat:'Susunan Kalimat',
+ q:'Susun menjadi kalimat benar. Huruf TERAKHIR dari kata TERAKHIR adalah jawaban:\n\n"memiliki kalimat suatu kerja kata selalu sebuah"',
+ c:['A','U','I','N','K'], a:0,
+ exp:'Kalimat: "Sebuah kalimat selalu memiliki kata kerja." Kata terakhir: "kerja" → huruf terakhir: A.'},
+{id:17,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Anak lelaki berumur 6 tahun, saudara perempuannya 2× lebih tua.\nKetika anak lelaki berumur 9, berapa umur saudaranya?',
+ a:'15', alt:['15 tahun'],
+ exp:'Saudara = 12 tahun. Selisih = 6 tahun. 9+6 = 15 tahun.'},
+{id:18,lv:2,type:'MC',cat:'Persamaan Kata',
+ q:'"IT\'S" dan "ITS" — apakah dua kata ini:',
+ c:['Memiliki arti yang sama','Memiliki arti berlawanan','Tidak memiliki arti sama atau berlawanan'], a:2,
+ exp:'"It\'s" = singkatan "it is". "Its" = miliknya. Berbeda, tidak berlawanan.'},
+{id:19,lv:2,type:'MC',cat:'Silogisme',
+ q:'Anggap dua pernyataan pertama benar. Apakah pernyataan terakhir?\n\n"Semua siswa ikut ujian. Beberapa orang di ruangan ini adalah siswa. Beberapa orang di ruangan ini ikut ujian."',
+ c:['Benar','Salah','Tidak Tahu'], a:0,
+ exp:'Semua siswa ikut ujian. Beberapa di ruangan = siswa → beberapa di ruangan pasti ikut ujian. BENAR.'},
+{id:20,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Pedagang beli beberapa barrel total Rp 5.000. Jual Rp 6.000, untung Rp 50/barrel. Berapa barrel?',
+ a:'20', alt:['20 barrel','dua puluh'],
+ exp:'Untung total = Rp1.000. Per barrel = Rp50. 1.000÷50 = 20 barrel.'},
+{id:21,lv:2,type:'MC',cat:'Susunan Kalimat',
+ q:'Susun menjadi kalimat. Jika BENAR tulis B, jika SALAH tulis S:\n\n"semua menghasilkan telur ayam"',
+ c:['B — Benar','S — Salah'], a:1,
+ exp:'"Semua ayam menghasilkan telur" — salah, ayam jantan tidak bertelur. Jawaban: S.'},
+{id:22,lv:2,type:'MC',cat:'Peribahasa',
+ q:'Dua peribahasa berikut memiliki makna SERUPA. Manakah?',
+ c:['Anak seperti ayahnya / Mereka dari sumber yang sama','Semakin banyak sapi semakin banyak anak sapi buruk / Bila tertinggal sejauh satu mil','Seorang dikenal dari pergaulannya / Mereka dari sumber yang sama','Anak seperti ayahnya / Bila tertinggal sejauh satu mil','Batu berguling tidak kumpulkan lumut / Ini ketidakmungkinan'], a:0,
+ exp:'"Anak seperti ayahnya" dan "Mereka dari sumber yang sama" = asal-usul menentukan karakter.'},
+{id:23,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Sebuah jam terlambat 1 menit 30 detik dalam 45 hari.\nBerapa detik terlambat dalam sehari?',
+ a:'2', alt:['2 detik','dua'],
+ exp:'1 menit 30 detik = 90 detik. 90÷45 = 2 detik/hari.'},
+{id:24,lv:2,type:'MC',cat:'Persamaan Kata',
+ q:'"CANVAS" dan "CANVASS" — apakah dua kata ini:',
+ c:['Memiliki arti yang sama','Memiliki arti berlawanan','Tidak memiliki arti sama atau berlawanan'], a:2,
+ exp:'"Canvas" = kain kanvas. "Canvass" = kampanye/survei. Berbeda, tidak berlawanan.'},
+{id:25,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Dalam 28 hari seseorang menabung Rp 700.\nBerapa rata-rata tabungan per hari?',
+ a:'25', alt:['Rp25','25 rupiah','Rp 25'],
+ exp:'700÷28 = 25 rupiah/hari.'},
+{id:26,lv:2,type:'MC',cat:'Persamaan Kata',
+ q:'"DAPAT DIPERCAYA" dan "MUDAH PERCAYA" — apakah dua frasa ini:',
+ c:['Memiliki arti yang sama','Memiliki arti berlawanan','Tidak memiliki arti sama atau berlawanan'], a:2,
+ exp:'"Dapat dipercaya" = orang andal. "Mudah percaya" = gampang percaya orang lain. Berbeda, tidak berlawanan.'},
+{id:27,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Dua orang menangkap 42 ikan. X menangkap 6× lebih banyak dari Y. Berapa ikan Y?',
+ a:'6', alt:['6 ekor','enam'],
+ exp:'X=6Y. 6Y+Y=42 → 7Y=42 → Y=6.'},
+{id:28,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Kotak persegi panjang memuat 900 kubik kaki. Lebar 9 kaki, panjang 10 kaki. Berapa kedalaman?',
+ a:'10', alt:['10 kaki'],
+ exp:'900 = 10×9×t → t = 10 kaki.'},
+{id:29,lv:2,type:'MC',cat:'Pola Angka',
+ q:'Satu angka dalam rangkaian ini TIDAK sesuai pola. Mana?\n\n½  ¼  1/6  1/8  1/9  1/12',
+ c:['½','¼','1/6','1/9','1/12'], a:3,
+ exp:'Pola: penyebut genap (2,4,6,8,10,12). Yang tidak cocok: 1/9 (penyebut 9 = ganjil).'},
+{id:30,lv:2,type:'MC',cat:'Pengetahuan Umum',
+ q:'Apakah "p.m." singkatan dari "post meridiem"?',
+ c:['Ya, benar','Tidak, salah'], a:0,
+ exp:'"p.m." = post meridiem (Latin) = setelah tengah hari.'},
+{id:31,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Sebuah rok butuh 2½ meter kain. Berapa rok dari 45 meter kain?',
+ a:'18', alt:['18 potong','delapan belas'],
+ exp:'45÷2.5 = 18 rok.'},
+{id:32,lv:2,type:'TEXT',cat:'Aritmatika',
+ q:'Tim kalah 9 pertandingan musim ini = 3/8 dari semua pertandingan.\nBerapa total pertandingan?',
+ a:'24', alt:['24 pertandingan'],
+ exp:'9 = 3/8 × total → total = 9×8÷3 = 24.'},
+{id:33,lv:2,type:'MC',cat:'Pola Angka',
+ q:'Angka selanjutnya dari seri ini?\n\n1  0.5  0.25  0.125  ...',
+ c:['0.0625','0.05','0.1','0.025','0.5'], a:0,
+ exp:'Setiap angka ÷2: 0.125÷2 = 0.0625.'},
+// ── LEVEL 3: SULIT ───────────────────────────────────
+{id:34,lv:3,type:'MC',cat:'Peribahasa',
+ q:'Dua peribahasa berikut memiliki makna SERUPA. Manakah?',
+ c:['Tidak bisa buat dompet sutra dari telinga babi / Tidak bisa hancurkan kapal yang sudah rusak','Orang yang curi telur akan curi sapi / Batu berguling tidak kumpulkan lumut','Tidak bisa hancurkan kapal rusak / Ini ketidakmungkinan yang terjadi','Anak seperti ayahnya / Orang dikenal dari pergaulannya','Batu berguling / Ketidakmungkinan'], a:2,
+ exp:'"Tidak bisa menghancurkan yang sudah rusak" dan "Ketidakmungkinan terjadi" = sesuatu yang sudah buruk tidak bisa diperburuk lagi.'},
+{id:35,lv:3,type:'TEXT',cat:'Duplikasi',
+ q:'Berapa pasangan nama yang IDENTIK?\n\nRexford, J.D.   — Rockford, J.D.\nSingleton, M.O. — Simbleten, M.O.\nRichards, W.E.  — Richad, W.E.\nSiegel, A.B.    — Seigel, A.B.\nWood, A.O.      — Wood, A.O.',
+ a:'1', alt:['satu','1 pasang'],
+ exp:'Hanya Wood, A.O. yang identik. Pasangan lain berbeda ejaan.'},
+{id:36,lv:3,type:'MC',cat:'Angka Terkecil',
+ q:'Manakah angka yang TERKECIL?\n\n10   1   0.999   0.33   11',
+ c:['10','1','0.999','0.33','11'], a:3,
+ exp:'0.33 < 0.999 < 1 < 10 < 11. Jawaban: 0.33.'},
+{id:37,lv:3,type:'MC',cat:'Persamaan Makna',
+ q:'Apakah makna kedua kalimat ini: Sama, Berlawanan, atau Tidak sama/berlawanan?\n\n"Sapu baru menyapu bersih."\n"Sepatu lama terasa makin nyaman."',
+ c:['Sama','Berlawanan','Tidak sama atau berlawanan'], a:1,
+ exp:'Sapu baru = hal baru lebih baik. Sepatu lama = hal lama lebih nyaman. Berlawanan.'},
+{id:38,lv:3,type:'MC',cat:'Klasifikasi',
+ q:'Manakah kata yang BERBEDA dari yang lain?\n\nkoloni  persekutuan  kawanan  kru  konstelasi',
+ c:['koloni','persekutuan','kawanan','kru','konstelasi'], a:4,
+ exp:'"Konstelasi" = kelompok bintang (benda langit), yang lain = kelompok makhluk hidup.'},
+{id:39,lv:3,type:'MC',cat:'Silogisme',
+ q:'Anggap dua pernyataan pertama benar. Apakah pernyataan terakhir?\n\n"Orang berpengaruh sering ditipu. Saya sering ditipu. Saya adalah orang berpengaruh."',
+ c:['Benar','Salah','Tidak Tahu'], a:2,
+ exp:'Tidak semua yang ditipu adalah orang berpengaruh. Tidak cukup bukti. TIDAK TAHU.'},
+{id:40,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Untuk cetak artikel 30.000 kata, dipakai 2 ukuran teks:\n• Teks besar: 1.200 kata/halaman\n• Teks kecil: 1.500 kata/halaman\nTotal: 22 halaman. Berapa halaman teks KECIL?',
+ a:'12', alt:['12 halaman','dua belas'],
+ exp:'Misalkan x = halaman kecil. 1500x + 1200(22−x) = 30000 → 300x = 3600 → x = 12.'},
+{id:41,lv:3,type:'MC',cat:'Persamaan Makna',
+ q:'Apakah makna kedua kalimat ini: Sama, Berlawanan, atau Tidak sama/berlawanan?\n\n"Tidak ada orang jujur meminta maaf atas kejujurannya."\n"Kejujuran dihormati namun lapar pujian."',
+ c:['Sama','Berlawanan','Tidak sama atau berlawanan'], a:2,
+ exp:'Kalimat pertama: orang jujur tidak minta maaf. Kalimat kedua: kejujuran dihargai tapi jarang dipuji. Berbeda fokus, tidak sama dan tidak berlawanan.'},
+{id:42,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Pipa A mengisi kolam dalam 4 jam. Pipa B menguras dalam 6 jam.\nJika keduanya jalan bersamaan (kolam kosong), berapa jam kolam penuh?',
+ a:'12', alt:['12 jam'],
+ exp:'Net = 1/4 − 1/6 = 1/12 per jam. Waktu penuh = 12 jam.'},
+{id:43,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Rata-rata 5 angka adalah 18.\n4 angka pertama: 12, 15, 22, 25.\nBerapa angka kelima?',
+ a:'16', alt:['enam belas'],
+ exp:'Total = 5×18 = 90. Empat angka = 74. Kelima = 90−74 = 16.'},
+{id:44,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Keran bocor 2 liter/jam. Tangki 50 liter sudah 80% penuh. Tidak diisi ulang.\nBerapa jam hingga tangki kosong?',
+ a:'20', alt:['20 jam'],
+ exp:'Isi = 80%×50 = 40 liter. 40÷2 = 20 jam.'},
+{id:45,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'A selesaikan pekerjaan dalam 10 hari. B dalam 15 hari.\nJika bekerja bersama, berapa hari selesai?',
+ a:'6', alt:['6 hari','enam'],
+ exp:'1/10 + 1/15 = 5/30 = 1/6. Waktu = 6 hari.'},
+{id:46,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Toko beri diskon 25%, lalu diskon tambahan 20%.\nHarga awal Rp 100.000. Berapa harga akhir?',
+ a:'60000', alt:['Rp60000','60.000','Rp 60.000'],
+ exp:'100.000×0.75 = 75.000. 75.000×0.80 = 60.000.'},
+{id:47,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'3 orang bagi keuntungan RATA. X investasi Rp4.500, Y Rp3.500, Z Rp2.000.\nKeuntungan Rp1.500. Berapa yang diterima X jika dibagi RATA?',
+ a:'500', alt:['Rp500','Rp 500'],
+ exp:'Dibagi rata 3 orang = Rp1.500÷3 = Rp500 per orang.'},
+{id:48,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Harga grosir kardus 12 lusin Rp 2.400. 2 lusin busuk sebelum terjual.\nJual per lusin berapa agar untung 1/3 dari harga beli?',
+ a:'320', alt:['Rp320','Rp 320'],
+ exp:'Target jual = 2400×(1+1/3) = Rp3.200. Yang terjual 10 lusin. 3200÷10 = Rp320/lusin.'},
+{id:49,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Jam terlambat 26 detik dalam 50 jam. Berapa detik terlambat per ½ jam?',
+ a:'0.26', alt:['0,26','¼'],
+ exp:'26÷50 = 0.52 detik/jam. Per ½ jam = 0.26 detik ≈ ¼ detik.'},
+{id:50,lv:3,type:'TEXT',cat:'Aritmatika',
+ q:'Sebuah rok butuh 2¼ meter kain. Ada 45 meter. Berapa rok yang bisa dibuat?',
+ a:'20', alt:['dua puluh','20 potong'],
+ exp:'45÷2.25 = 20 rok.'},
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let userData={nama:'',jabatan:'',kode:''};
+let questions=[], currentIdx=0, score=0, answers=[];
+let timerInt=null, secondsLeft=720, answered=false, timedOut=false;
+let adminLoggedIn=false;
+let kodeLog=[]; // log kode di memory (session)
+let currentKode='', currentGenNama='', currentGenJabatan='';
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function fmt(s){return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function genKode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+function showToast(msg,ok=true){
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';
+    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:13px 26px;border-radius:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,.3);transition:opacity .4s;';
+    document.body.appendChild(t);}
+  t.textContent=msg;t.style.background=ok?'#15803D':'#B91C1C';t.style.color='#fff';t.style.opacity='1';
+  clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity='0',4000);
+}
+
+// ══════════════════════════════════════════════════════
+// ADMIN LOGIN
+// ══════════════════════════════════════════════════════
+function adminLogin(){
+  const v=document.getElementById('admin-pw-inp').value;
+  const err=document.getElementById('admin-pw-err');
+  if(v===ADMIN_PASSWORD){
+    adminLoggedIn=true;
+    document.getElementById('admin-pw-inp').value='';
+    err.textContent='';
+    renderLog();
+    showScreen('screen-admin');
+  } else {
+    err.textContent='✗ Password salah.';
+    setTimeout(()=>err.textContent='',3000);
+  }
+}
+function adminLogout(){adminLoggedIn=false;showScreen('screen-admin-login');}
+
+// ══════════════════════════════════════════════════════
+// GENERATE KODE
+// ══════════════════════════════════════════════════════
+function generateKode(){
+  const nama=document.getElementById('gen-nama').value.trim();
+  const jabatan=document.getElementById('gen-jabatan').value.trim();
+  if(!nama){showToast('✗ Nama peserta wajib diisi.',false);return;}
+
+  const kode=genKode();
+  currentKode=kode; currentGenNama=nama; currentGenJabatan=jabatan;
+  const ts=new Date().toLocaleString('id-ID',{timeZone:'Asia/Jakarta'});
+
+  // Tampilkan kode di layar
+  document.getElementById('cr-peserta').textContent=nama+(jabatan?' — '+jabatan:'');
+  document.getElementById('cr-kode').textContent=kode;
+  document.getElementById('code-result').classList.add('show');
+
+  // Simpan ke log lokal
+  kodeLog.push({nama,jabatan,kode,ts,used:false});
+  renderLog();
+
+  // Kirim ke Apps Script (log + email ke hrdgamemorial@gmail.com)
+  kirimKeServer({action:'generateKode',nama,jabatan,kode,timestamp:ts});
+  showToast('✅ Kode dibuat & email terkirim ke hrdgamemorial@gmail.com');
+}
+
+function copyKode(){
+  navigator.clipboard.writeText(currentKode).then(()=>showToast('📋 Kode '+currentKode+' disalin!'));
+}
+function kirimWA(){
+  const teks=`Halo ${currentGenNama}, berikut kode akses tes seleksi Anda:\n\n*${currentKode}*\n\nMasukkan kode ini di halaman tes. Berlaku 3 jam.`;
+  window.open('https://wa.me/?text='+encodeURIComponent(teks),'_blank');
+}
+
+function renderLog(){
+  const tbody=document.getElementById('log-body');
+  if(kodeLog.length===0){
+    tbody.innerHTML='<tr><td colspan="4" class="empty-log">Belum ada kode yang dibuat</td></tr>';
+    return;
+  }
+  tbody.innerHTML=kodeLog.slice().reverse().map(k=>
+    `<tr>
+      <td>${k.nama}</td>
+      <td>${k.jabatan||'—'}</td>
+      <td><strong style="font-family:Syne,sans-serif;letter-spacing:2px;">${k.kode}</strong></td>
+      <td>${k.used?'<span class="tag-used">✅ Dipakai</span>':'<span class="tag-fresh">⏳ Belum</span>'}</td>
+    </tr>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// PESERTA MASUK KODE — validasi ke Apps Script [FIXED]
+// ══════════════════════════════════════════════════════
+function pesertaMasuk(){
+  const nama=document.getElementById('p-nama').value.trim();
+  const jabatan=document.getElementById('p-jabatan').value.trim();
+  const kode=document.getElementById('p-kode').value.toUpperCase().trim();
+  const err=document.getElementById('kode-err');
+  const btn=document.querySelector('#screen-kode .btn-gold');
+
+  if(!nama){err.textContent='✗ Nama wajib diisi.';return;}
+  if(!kode||kode.length!==6){err.textContent='✗ Kode harus 6 karakter.';return;}
+
+  // Tampilkan loading
+  err.textContent='';
+  btn.textContent='Memeriksa kode...';
+  btn.disabled=true;
+
+  // Cek dulu apakah kode ada di log lokal (mode offline / file lokal)
+  const localEntry=kodeLog.find(k=>k.kode===kode&&!k.used);
+  if(localEntry){
+    btn.textContent='Lanjut →';btn.disabled=false;
+    localEntry.used=true;renderLog();
+    userData={nama,jabatan,kode};
+    document.getElementById('intro-nama').textContent=nama;
+    document.getElementById('intro-jabatan').textContent=jabatan||'';
+    showScreen('screen-intro');return;
+  }
+
+  // Validasi ke Apps Script via JSONP
+  const cbName='__wptCb'+Date.now();
+  const payload={action:'validateKode',kode};
+  const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
+
+  const timeout=setTimeout(()=>{
+    cleanup();
+    btn.textContent='Lanjut →';btn.disabled=false;
+    err.textContent='✗ Server tidak merespons. Periksa koneksi internet.';
+  },10000);
+
+  function cleanup(){
+    clearTimeout(timeout);
+    delete window[cbName];
+    const s=document.getElementById('__wptScript');
+    if(s)s.remove();
+  }
+
+  window[cbName]=function(res){
+    cleanup();
+    btn.textContent='Lanjut →';btn.disabled=false;
+    if(res.valid){
+      userData={nama,jabatan,kode};
+      document.getElementById('intro-nama').textContent=nama;
+      document.getElementById('intro-jabatan').textContent=jabatan||'';
+      const entry=kodeLog.find(k=>k.kode===kode);
+      if(entry)entry.used=true;
+      renderLog();
+      showScreen('screen-intro');
+    } else {
+      err.textContent='✗ '+(res.reason||'Kode tidak valid. Minta kode baru dari admin.');
+    }
+  };
+
+  const script=document.createElement('script');
+  script.id='__wptScript';
+  script.src=url;
+  script.onerror=()=>{
+    cleanup();
+    btn.textContent='Lanjut →';btn.disabled=false;
+    err.textContent='✗ Gagal terhubung ke server.';
+  };
+  document.head.appendChild(script);
+}
 
 // ══════════════════════════════════════════════════════
 // START QUIZ
@@ -399,7 +784,7 @@ function renderQ(){
 
   document.getElementById('fbbox').style.display='none';
   document.getElementById('fbbox').className='fbbox';
-  const btnNext=document.getElementById('btn-next'); if(btnNext)btnNext.style.display='none';
+  document.getElementById('btn-next').style.display='none';
 
   if(q.type==='MC'){
     document.getElementById('choices').style.display='flex';
@@ -433,7 +818,6 @@ function pickMC(idx,btn,q){
   if(answered)return;answered=true;
   document.querySelectorAll('.cbtn').forEach(b=>b.disabled=true);
   const ok=idx===q.a;if(ok)score++;
-  // Tidak highlight jawaban benar/salah
   tampilFeedback(ok,q.exp,q.c[idx],q.c[q.a]);
   answers.push({q:q.q,chosen:q.c[idx],correct:q.c[q.a],ok,type:'MC'});
 }
@@ -448,13 +832,12 @@ function cekTeks(){
   const all=[q.a.toString(),...(q.alt||[])].map(x=>x.toString().toLowerCase().trim());
   const ok=all.includes(val.toLowerCase().trim());
   if(ok)score++;
-  // Tidak warnai input
   tampilFeedback(ok,q.exp,val,q.a.toString());
   answers.push({q:q.q,chosen:val,correct:q.a.toString(),ok,type:'TEXT'});
 }
 
 function tampilFeedback(ok,exp,chosen,correct){
-  // Auto pindah ke soal berikutnya setelah 400ms
+  // Auto pindah ke soal berikutnya, tanpa tampilkan jawaban
   setTimeout(()=>{
     if(currentIdx+1<questions.length) nextQ();
     else endQuiz();
@@ -486,61 +869,63 @@ function endQuiz(){
     score,total,persen,grade,persentil,waktuTersisa:fmt(Math.max(0,secondsLeft))
   });
 
-  // UI result — SIMPLIFIED v2
-  // Skor & jawaban disembunyikan dari peserta
-  document.getElementById('rstat-benar').textContent='—';
-  document.getElementById('rstat-salah').textContent='—';
+  // UI result
+  document.getElementById('res-score').textContent=score;
+  document.getElementById('res-total').textContent=total;
+  document.getElementById('rstat-benar').textContent=score;
+  document.getElementById('rstat-salah').textContent=total-score;
   document.getElementById('rstat-waktu').textContent=fmt(Math.max(0,secondsLeft));
   if(timedOut)document.getElementById('timeout-banner').style.display='block';
 
-  // Sembunyikan elemen yang tidak perlu ditampilkan ke peserta
-  const interpEl=document.querySelector('.wpt-table');
-  if(interpEl)interpEl.closest('section,div')&&(interpEl.style.display='none');
-  ['res-score','res-total'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){const parent=el.closest('.res-score-block,.sc');if(parent)parent.style.display='none';}
-  });
-  const reviewBtn=document.querySelector('[onclick="toggleReview()"]');
-  if(reviewBtn)reviewBtn.style.display='none';
-  document.getElementById('review-list').style.display='none';
+  // Highlight row interpretasi
+  [0,1,2,3,4,5].forEach(i=>document.getElementById('wr'+i).classList.remove('hl'));
+  const ri=score>=35?5:score>=30?4:score>=25?3:score>=20?2:score>=15?1:0;
+  document.getElementById('wr'+ri).classList.add('hl');
 
-  // Pesan simpel ke peserta
-  document.getElementById('res-emoji').textContent='✅';
-  document.getElementById('res-msg').textContent='Tes Selesai!';
-  document.getElementById('res-sub').textContent=`Terima kasih, ${userData.nama}! Tes seleksi Anda telah selesai. Hasil akan disampaikan oleh Tim HRD PT. KPUS.`;
+  let emoji,msg,sub;
+  if(score>=35){emoji='🏆';msg='Sangat Tinggi!';sub=`Luar biasa, ${userData.nama}! Skor WPT Anda masuk kategori Superior. Kemampuan analitis dan pemecahan masalah Anda sangat kuat.`;}
+  else if(score>=30){emoji='🌟';msg='Tinggi!';sub=`${userData.nama}, hasil sangat baik. Kemampuan berpikir analitis Anda solid di atas rata-rata populasi.`;}
+  else if(score>=25){emoji='💪';msg='Di Atas Rata-Rata';sub=`${userData.nama}, performa bagus. Asah terus kemampuan berhitung dan penalaran logis untuk hasil optimal.`;}
+  else if(score>=20){emoji='📈';msg='Rata-Rata';sub=`${userData.nama}, skor dalam rentang rata-rata. Latih kecepatan dan ketepatan berpikir analitis Anda.`;}
+  else{emoji='📚';msg='Perlu Latihan';sub=`${userData.nama}, ini langkah awal. Latih berhitung, penalaran verbal, dan pola angka secara rutin.`;}
+  document.getElementById('res-emoji').textContent=emoji;
+  document.getElementById('res-msg').textContent=msg;
+  document.getElementById('res-sub').textContent=sub;
+
+  // Review
+  const rl=document.getElementById('review-list');
+  rl.innerHTML='<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:15px;color:var(--white);margin-bottom:14px;">Pembahasan Jawaban</div>';
+  answers.forEach((a,i)=>{
+    const el=document.createElement('div');el.className='rev-item';
+    el.innerHTML=`<div class="rev-q">${i+1}. ${a.q}</div>
+      ${a.ok?`<div class="rev-a ok">✓ ${a.chosen}</div>`
+             :`<div class="rev-a err">✗ Anda: ${a.chosen}</div><div class="rev-a ok" style="margin-top:4px;">✓ Benar: ${a.correct}</div>`}`;
+    rl.appendChild(el);
+  });
 }
 
 // ══════════════════════════════════════════════════════
-// KIRIM KE APPS SCRIPT via JSONP (bypass CORS)
+// KIRIM KE APPS SCRIPT
 // ══════════════════════════════════════════════════════
 const DISCORD_WEBHOOK='https://discord.com/api/webhooks/1493451394198536192/pQjW2Ajd61hKx3vyehKzeEmRll6YOwd5jSNPJ4SubQrh_yCpDXVoRP2JgOixtvmloxP3';
 
 function kirimKeServer(payload){
   if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('PASTE'))return;
-
   const cbName='__wptSend'+Date.now();
   const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
-
   window[cbName]=function(res){
     delete window[cbName];
     const s=document.getElementById('__wptSendScript');
     if(s)s.remove();
     if(payload.action==='submitResult'){
-      showToast('✅ Hasil tersimpan di Google Sheet!');
+      showToast('✅ Hasil tersimpan!');
       kirimDiscord(payload);
     }
   };
-
   const script=document.createElement('script');
   script.id='__wptSendScript';
   script.src=url;
-  script.onerror=()=>{
-    delete window[cbName];
-    script.remove();
-    if(payload.action==='submitResult'){
-      showToast('⚠️ Gagal kirim ke server.',false);
-    }
-  };
+  script.onerror=()=>{ delete window[cbName]; script.remove(); };
   document.head.appendChild(script);
 }
 
@@ -550,25 +935,20 @@ function kirimDiscord(payload){
   const total=payload.total||50;
   const grade=payload.grade||'—';
   const kategori=score>=35?'Sangat Tinggi (Superior)':score>=30?'Tinggi':score>=25?'Di Atas Rata-Rata':score>=20?'Rata-Rata':score>=15?'Rata-Rata Bawah':'Di Bawah Rata-Rata';
-  const embed={
-    embeds:[{
-      title:'📋 Hasil Tes Seleksi — Selesai',
-      color:0xD4A843,
-      fields:[
-        {name:'👤 Nama',     value:payload.nama    ||'—', inline:true},
-        {name:'💼 Jabatan',  value:payload.jabatan ||'—', inline:true},
-        {name:'📅 Tgl Test', value:ts,                    inline:false},
-        {name:'🎯 Score',    value:`**${score} / ${total}** — Grade **${grade}** — ${kategori}`, inline:false},
-        {name:'📧 Status',   value:'Hasil telah dikirim ke **hrdgamemorial@gmail.com**', inline:false}
-      ],
-      footer:{text:'PT. KPUS Assessment System'}
-    }]
-  };
-  fetch(DISCORD_WEBHOOK,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(embed)
-  }).catch(()=>{});
+  const embed={embeds:[{
+    title:'📋 Hasil Tes Seleksi — Selesai',
+    color:0xD4A843,
+    fields:[
+      {name:'👤 Nama',      value:payload.nama    ||'—', inline:true},
+      {name:'💼 Jabatan',   value:payload.jabatan ||'—', inline:true},
+      {name:'📅 Tgl Test',  value:ts,                    inline:false},
+      {name:'🎯 Score',     value:'**'+score+' / '+total+'** — Grade **'+grade+'**', inline:false},
+      {name:'📝 Keterangan',value:kategori,              inline:false},
+      {name:'📧 Status',    value:'Hasil dikirim ke **hrdgamemorial@gmail.com**', inline:false}
+    ],
+    footer:{text:'PT. KPUS Assessment System'}
+  }]};
+  fetch(DISCORD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(embed)}).catch(()=>{});
 }
 
 // ══════════════════════════════════════════════════════
@@ -584,9 +964,4 @@ function resetAll(){
 }
 function toggleReview(){
   const rl=document.getElementById('review-list');
-  const isHidden=rl.style.display==='none'||rl.style.display==='';
-  rl.style.display=isHidden?'block':'none';
-}
-</script>
-</body>
-</html>
+  c
