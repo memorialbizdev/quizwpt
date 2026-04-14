@@ -219,17 +219,6 @@ body::before {
       </div>
     </div>
 
-    <div class="sec-title">Test Simulasi</div>
-    <div class="gen-box">
-      <p style="font-size:13px;color:var(--mid);margin-bottom:12px;">Kirim data simulasi ke Google Sheet & Discord untuk test sistem.</p>
-      <div class="gen-fields">
-        <input type="text" id="sim-nama" class="inp-light" placeholder="Nama simulasi..." value="Test User">
-        <input type="text" id="sim-jabatan" class="inp-light" placeholder="Jabatan simulasi..." value="Staff">
-      </div>
-      <button class="btn-gen" onclick="testSimulasi()" style="background:#1840A0;">🧪 Kirim Test Simulasi ke Sheet & Discord</button>
-      <div id="sim-status" style="margin-top:10px;font-size:13px;color:var(--mid);"></div>
-    </div>
-
     <div class="sec-title">Log Kode Akses</div>
     <div class="log-wrap">
       <table class="log-tbl">
@@ -927,55 +916,6 @@ function kirimDiscord(payload){
 // ══════════════════════════════════════════════════════
 // RESET & REVIEW
 // ══════════════════════════════════════════════════════
-function testSimulasi(){
-  const nama=document.getElementById('sim-nama').value.trim()||'Test User';
-  const jabatan=document.getElementById('sim-jabatan').value.trim()||'Staff';
-  const status=document.getElementById('sim-status');
-  const score=Math.floor(Math.random()*20)+25; // random 25-44
-  const total=50;
-  const persen=Math.round(score/total*100);
-  const grade=persen>=90?'A':persen>=75?'B':persen>=60?'C':persen>=40?'D':'E';
-  const persentil=score>=40?'>99%':score>=35?'~95%':score>=30?'~85%':score>=25?'~65%':score>=20?'~40%':score>=15?'~20%':'~10%';
-  const ts=new Date().toLocaleString('id-ID',{timeZone:'Asia/Jakarta'});
-  const kode='SIM'+Math.random().toString(36).slice(2,6).toUpperCase();
-
-  status.textContent='⏳ Mengirim ke server...';
-  status.style.color='#A16207';
-
-  const cbName='__simCb'+Date.now();
-  const payload={action:'submitResult',timestamp:ts,nama,jabatan,kode,score,total,persen,grade,persentil,waktuTersisa:'--:--'};
-  const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
-
-  window[cbName]=function(res){
-    delete window[cbName];
-    const s=document.getElementById('__simScript');if(s)s.remove();
-    if(res&&res.status==='result_saved'){
-      status.textContent='✅ Berhasil! Sheet & Discord sudah diupdate. Score: '+score+'/'+total+' ('+grade+')';
-      status.style.color='#15803D';
-    } else {
-      status.textContent='⚠️ Response: '+JSON.stringify(res);
-      status.style.color='#B91C1C';
-    }
-  };
-
-  const sc=document.createElement('script');
-  sc.id='__simScript';sc.src=url;
-  sc.onerror=()=>{
-    delete window[cbName];sc.remove();
-    status.textContent='❌ Gagal terhubung ke server.';
-    status.style.color='#B91C1C';
-  };
-  document.head.appendChild(sc);
-
-  // Timeout 10 detik
-  setTimeout(()=>{
-    if(window[cbName]){
-      delete window[cbName];
-      status.textContent='⏱ Timeout — server tidak merespons.';
-      status.style.color='#B91C1C';
-    }
-  },10000);
-}
 
 function resetAll(){
   document.getElementById('p-nama').value='';
