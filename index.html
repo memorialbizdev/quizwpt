@@ -353,6 +353,7 @@ body::before {
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCrTRmQ8EXl8LhL-SqDF8xOeVFqlOqSOAhShKtQPzoGRJIvB_golPyw7devXA8XqrTLg/exec';
 const ADMIN_PASSWORD  = 'LMP2025wpt';   // ← ganti sesuai keinginan Anda
 
+
 // ══════════════════════════════════════════════════════
 // BANK SOAL — 50 soal WPT, angka diacak dari aslinya
 // Urutan: level 1 (mudah) → level 2 (sedang) → level 3 (sulit)
@@ -667,7 +668,7 @@ function renderLog(){
 }
 
 // ══════════════════════════════════════════════════════
-// PESERTA MASUK KODE — validasi ke Apps Script [FIXED]
+// PESERTA MASUK KODE — validasi via JSONP (bypass CORS)
 // ══════════════════════════════════════════════════════
 function pesertaMasuk(){
   const nama=document.getElementById('p-nama').value.trim();
@@ -679,12 +680,11 @@ function pesertaMasuk(){
   if(!nama){err.textContent='✗ Nama wajib diisi.';return;}
   if(!kode||kode.length!==6){err.textContent='✗ Kode harus 6 karakter.';return;}
 
-  // Tampilkan loading
   err.textContent='';
   btn.textContent='Memeriksa kode...';
   btn.disabled=true;
 
-  // Cek dulu apakah kode ada di log lokal (mode offline / file lokal)
+  // Cek log lokal dulu (kode dibuat di session yang sama)
   const localEntry=kodeLog.find(k=>k.kode===kode&&!k.used);
   if(localEntry){
     btn.textContent='Lanjut →';btn.disabled=false;
@@ -695,40 +695,49 @@ function pesertaMasuk(){
     showScreen('screen-intro');return;
   }
 
-  // Validasi ke Apps Script (online)
+  // Validasi ke Apps Script via JSONP (tidak ada CORS issue)
+  const cbName='__wptCb'+Date.now();
   const payload={action:'validateKode',kode};
-  const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
+  const url=APPS_SCRIPT_URL+'?callback='+cbName+'&data='+encodeURIComponent(JSON.stringify(payload));
 
-  // Timeout 8 detik
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),8000);
+  const timeout=setTimeout(()=>{
+    cleanup();
+    btn.textContent='Lanjut →';btn.disabled=false;
+    err.textContent='✗ Server tidak merespons (timeout). Periksa koneksi internet.';
+  },10000);
 
-  fetch(url,{signal:controller.signal,mode:'cors'})
-    .then(r=>r.json())
-    .then(res=>{
-      clearTimeout(timeout);
-      btn.textContent='Lanjut →';btn.disabled=false;
-      if(res.valid){
-        userData={nama,jabatan,kode};
-        document.getElementById('intro-nama').textContent=nama;
-        document.getElementById('intro-jabatan').textContent=jabatan||'';
-        const entry=kodeLog.find(k=>k.kode===kode);
-        if(entry) entry.used=true;
-        renderLog();
-        showScreen('screen-intro');
-      } else {
-        err.textContent='✗ '+(res.reason||'Kode tidak valid. Minta kode baru dari admin.');
-      }
-    })
-    .catch(e=>{
-      clearTimeout(timeout);
-      btn.textContent='Lanjut →';btn.disabled=false;
-      if(e.name==='AbortError'){
-        err.textContent='✗ Server tidak merespons (timeout). Periksa koneksi internet.';
-      } else {
-        err.textContent='✗ Gagal terhubung ke server. Periksa koneksi internet Anda.';
-      }
-    });
+  function cleanup(){
+    clearTimeout(timeout);
+    delete window[cbName];
+    const s=document.getElementById('__wptScript');
+    if(s)s.remove();
+  }
+
+  window[cbName]=function(res){
+    cleanup();
+    btn.textContent='Lanjut →';btn.disabled=false;
+    if(res.valid){
+      userData={nama,jabatan,kode};
+      document.getElementById('intro-nama').textContent=nama;
+      document.getElementById('intro-jabatan').textContent=jabatan||'';
+      const entry=kodeLog.find(k=>k.kode===kode);
+      if(entry)entry.used=true;
+      renderLog();
+      showScreen('screen-intro');
+    } else {
+      err.textContent='✗ '+(res.reason||'Kode tidak valid. Minta kode baru dari admin.');
+    }
+  };
+
+  const script=document.createElement('script');
+  script.id='__wptScript';
+  script.src=url;
+  script.onerror=()=>{
+    cleanup();
+    btn.textContent='Lanjut →';btn.disabled=false;
+    err.textContent='✗ Gagal terhubung ke server. Periksa koneksi internet Anda.';
+  };
+  document.head.appendChild(script);
 }
 
 // ══════════════════════════════════════════════════════
