@@ -848,41 +848,12 @@ function endQuiz(){
   const persentil=score>=40?'>99%':score>=35?'~95%':score>=30?'~85%':score>=25?'~65%':score>=20?'~40%':score>=15?'~20%':'~10%';
   const ts=new Date().toLocaleString('id-ID',{timeZone:'Asia/Jakarta'});
 
-  // Siapkan detail jawaban per soal untuk PDF
-  const detailJawaban = questions.map((q, i) => {
-    const ans = answers[i];
-    if (!ans) {
-      // Soal tidak dijawab (waktu habis sebelum sampai soal ini)
-      return {
-        no: i + 1,
-        soal: q.q,
-        cat: q.cat,
-        lv: q.lv,
-        type: q.type,
-        jawaban_peserta: '—',
-        jawaban_benar: q.type === 'MC' ? q.c[q.a] : q.a.toString(),
-        status: 'tidak_dijawab'
-      };
-    }
-    return {
-      no: i + 1,
-      soal: q.q,
-      cat: q.cat,
-      lv: q.lv,
-      type: q.type,
-      jawaban_peserta: ans.chosen,
-      jawaban_benar: ans.correct,
-      status: ans.ok ? 'benar' : 'salah'
-    };
-  });
-
   // Kirim ke Google Sheet
   kirimKeServer({
     action:'submitResult',
     timestamp:ts,
     nama:userData.nama,jabatan:userData.jabatan,kode:userData.kode,
-    score,total,persen,grade,persentil,waktuTersisa:fmt(Math.max(0,secondsLeft)),
-    detailJawaban: JSON.stringify(detailJawaban)
+    score,total,persen,grade,persentil,waktuTersisa:fmt(Math.max(0,secondsLeft))
   });
 
   // Tampilkan pesan selesai saja
