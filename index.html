@@ -556,7 +556,7 @@ const BANK = [
 // ══════════════════════════════════════════════════════
 let userData={nama:'',jabatan:'',kode:''};
 let questions=[], currentIdx=0, score=0, answers=[];
-let timerInt=null, secondsLeft=720, answered=false, timedOut=false;
+let timerInt=null, secondsLeft=720, answered=false, timedOut=false, quizEnded=false;
 let adminLoggedIn=false;
 let kodeLog=[]; // log kode di memory (session)
 let currentKode='', currentGenNama='', currentGenJabatan='';
@@ -731,7 +731,7 @@ function startQuiz(){
   });
 
   document.getElementById('hdr-name').textContent=userData.nama;
-  currentIdx=0;score=0;answers=[];secondsLeft=720;timedOut=false;answered=false;
+  currentIdx=0;score=0;answers=[];secondsLeft=720;timedOut=false;answered=false;quizEnded=false;
   showScreen('screen-quiz');
   startTimer();renderQ();
 }
@@ -839,6 +839,8 @@ function nextQ(){
 // END QUIZ
 // ══════════════════════════════════════════════════════
 function endQuiz(){
+  if(quizEnded) return;  // ← GUARD: hanya jalan 1x
+  quizEnded=true;
   clearInterval(timerInt);showScreen('screen-result');
   const total=answers.length;
   const persen=total>0?Math.round(score/total*100):0;
@@ -874,13 +876,19 @@ function kirimKeServer(payload){
   iframe.src=url;
   iframe.onload=()=>{
     setTimeout(()=>{ try{document.body.removeChild(iframe);}catch(e){} },3000);
-    if(payload.action==='submitResult') showToast('✅ Hasil tersimpan!');
+    if(payload.action==='submitResult'){
+      showToast('✅ Hasil tersimpan!');
+      kirimDiscord(payload);
+    }
   };
   iframe.onerror=()=>{ try{document.body.removeChild(iframe);}catch(e){} };
   document.body.appendChild(iframe);
-  // Fallback toast setelah 5 detik (tanpa kirimDiscord — Discord dikirim dari Apps Script)
+  // Fallback toast setelah 5 detik
   if(payload.action==='submitResult'){
-    setTimeout(()=>showToast('✅ Hasil terkirim!'),5000);
+    setTimeout(()=>{
+      kirimDiscord(payload);
+      showToast('✅ Hasil terkirim!');
+    },5000);
   }
 }
 
